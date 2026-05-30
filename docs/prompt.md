@@ -61,3 +61,27 @@ task 워크플로우에 따라서 1번 이슈의 PR 을 생성해줘.
 
 task 1 에서 prompt.md 와 hook 도 함께 추가해줘. 
 현재 작성되어있는 md 파일에서 background 에서 입력된  <task-notification> , Continue: 등 프롬프트는 제외하도록 수정해줘.
+
+
+---
+
+PR 의 iOS 17 결정 근거에 대해 정정해줘.
+- iOS 17 버전을 택한 이유는 TCA 버전이슈가 아님. TCA 버전은 iOS 17 에 호환되는 버전을 골랐을 뿐
+- 내가 생각한 결정 근거 (최초 리서치 진행했던 결과)
+1) 시장 점유율이 iOS 17 + 는 99% 이상, iOS 16 이하는 1%  미만
+2) iOS17부터 Apple Observation 도입으로 TCA 에서도 WithPerceptionTracking 랩핑 불필요, 누락 버그 원천 제거 가능
+
+
+---
+
+Task 2 로 SDD (spec driven develop) 구조를 셋업하고 요구사항 기반의 스펙 문서를 만드려고해. 
+요구사항에 해당하는 spec 의 docs 구조를 만들어주고, CLAUDE.md 에 명시해줘.
+
+## 요구사항 
+- 화면별 정책의 SSoT 는 docs/specs/<feature>/spec.md 로 정리
+- 동작 변경시 코드부터 고치지 않고 spec 을 먼저 고친다. 
+- spec 하위에 화면별 요구사항, 엣지케이스, API 명세, 정책을 기록한다.
+
+## 결과 검증
+- CLAUDE.md 수정에 반영 
+- issue 생성 여부
