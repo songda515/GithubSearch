@@ -1,0 +1,65 @@
+# Local per-repo GitHub credentials (songda515) — never commit
+.gh-token
+.envrc
+.env
+
+# OMC runtime state (local tooling, not part of the repo)
+.omc/
+
+# macOS
+.DS_Store
+
+# Xcode
+## User settings
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+## Build generated
+build/
+DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+## Various settings
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Obj-C/Swift specific
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+## Resolved package versions are committed for reproducible builds; uncomment to ignore.
+# Package.resolved
+
+# CocoaPods (not used, kept for completeness)
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Accio dependency management
+Dependencies/
+.accio/
+
+# Code injection
+iOSInjectionProject/
