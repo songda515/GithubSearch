@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "p=$(jq -r '.prompt'); case \"$p\" in *'<task-notification'*|'Continue:'*|'[SYSTEM NOTIFICATION'*) exit 0;; esac; printf '\\n\\n---\\n\\n%s\\n' \"$p\" >> \"$CLAUDE_PROJECT_DIR/docs/prompt.md\"",
+            "suppressOutput": true
+          }
+        ]
+      }
+    ]
+  }
+}
