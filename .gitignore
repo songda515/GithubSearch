@@ -6,6 +6,9 @@
 # OMC runtime state (local tooling, not part of the repo)
 .omc/
 
+# Claude Code runtime locks (keep settings.json, ignore transient state)
+.claude/*.lock
+
 # macOS
 .DS_Store
 
