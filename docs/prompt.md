@@ -85,3 +85,47 @@ Task 2 로 SDD (spec driven develop) 구조를 셋업하고 요구사항 기반�
 ## 결과 검증
 - CLAUDE.md 수정에 반영 
 - issue 생성 여부
+
+
+---
+
+Task 3. 스펙 구성: 전체 구조 + 화면별 스펙 -> Task 분해
+
+SDD 기반으로 개별 화면의 스펙을 정의하기 전에 전체 구조를 잡으려고 해. 스펙에 overview 로 정리해줘.
+화면별 상세 정책은 다음 스텝으로 가져갈거기 때문에 해당 문서에 정리하지 말아줘.
+
+## 구성할 화면
+- 화면: 검색 화면, 검색 결과, 웹뷰
+- 공통 구조: 검색 입력, 검색 결과 상단의 title, search bar 는 공통으로 사용
+- 검색 결과 화면에서는 웹뷰를 열어야함
+
+## Feature Reducer
+- SearchFeature
+  - navigation title
+  - searchable query
+  - child reducer:
+    - SearchRecentFeature
+    - SearchResultFeature
+  - destination: webview
+
+- SearchRecentFeature
+  - 검색어 입력 후 검색 결과로의 전환은 SearchFeature 에 위임한다
+  - 최근검색어 관련 로직은 해당 Feature 에서 관리한다
+  - 최근검색어 관리가 필요하므로 Dependency 로 주입받는다.
+
+- SearchResultFeature
+  - 입력된 검색어는 상위 SearchFeature 에서 전달받는다.
+  - 검색 결과에 대한 로직은 해당 Feature 에서 관리한다.
+  - 검색 결과 화면에서 웹뷰 화면으로 이동하기 위한 destination 은 상위에 위임한다.
+  - 검색 결과의 API 호출이 필요하므로 Dependency 로 주입받는다.
+ - WebViewFeature
+  - title, url
+
+
+## Core 모듈
+- Core 모듈은 범용적으로 사용할 수 있도록 구축
+- UserDefaultsClient: set, get 에 대한 method 와 test 코드 함께 구축
+- HTTPClient: concurrency 기반 API 호출, Decodable 기반 데이터 파싱 구축
+
+## 참고 화면
+docs/{}.PNG 이미지
