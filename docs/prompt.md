@@ -236,3 +236,13 @@ Continue Task 5: read swift test result; if green commit code, then xcodebuild +
 ---
 
 PR #8 에서 진행하지 못한 XcodeBuildMCP  tap UI-automation 활성화해주고, 재 검증해서 댓글에 추가해줘.
+
+
+---
+
+현재 남은 Task 구현과 별개로 하네스 개선하고 싶은게 있어. 
+- review-spec 스킬 생성해서 스펙과 실제 구현 코드가 올바른지 검증. implement-spec 스킬과는 분리되어야함
+- 실행 조건: implement-spec 이후 test 통과 단계
+- 동작: 컨텍스트가 포함되지 않도록 서브에이전트 기반으로 동작
+- 점검: 스펙의 요구사항, 테스트 기준 재 점검, UI 렌더링과 참고화면 일치
+- CLAUDE.md 플로우에 test -> review-spec -> 판정 -> PR 명시
