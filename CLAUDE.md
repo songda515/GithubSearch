@@ -30,6 +30,9 @@ GithubSearchPackage/           ← ALL real code lives here (local SPM package)
   Tests/AppFeatureTests/       ← reducer tests (Swift Testing + TestStore)
 GithubSearchTests/             ← app-shell smoke tests (Swift Testing)
 GithubSearchUITests/
+docs/specs/                    ← SDD: per-screen policy SSoT (spec-first). See "Spec-Driven Development"
+  _template/spec.md            ← copy to start a new feature spec
+  <feature>/spec.md            ← single source of truth for one screen's policy
 ```
 
 **To add a feature/client module: edit `GithubSearchPackage/Package.swift` + add files. Never hand-edit `.xcodeproj`.**
@@ -72,6 +75,25 @@ extension DependencyValues {
     }
 }
 ```
+
+---
+
+## Spec-Driven Development (SDD)
+
+Per-screen behavior is defined by **specs, not code**. The spec is the contract; the code implements it.
+
+1. **SSoT = `docs/specs/<feature>/spec.md`.** Each screen/feature gets one directory; its `spec.md` is the
+   single source of truth for that screen's policy. One feature = one `docs/specs/<feature>/`.
+2. **Spec-first — change the spec before the code.** To change behavior, the order is always
+   `spec.md` → review → code/tests. Code must never lead the spec. If implementation and spec disagree,
+   it's a **spec violation**: fix the spec or bring the code back in line — don't silently diverge.
+3. **What a spec records** (template enforces the sections): per-screen **요구사항 (requirements) ·
+   엣지케이스 (edge cases) · API 명세 (API spec) · 정책 (policy)**, plus a **TCA mapping**
+   (State / Action / Client) and **acceptance criteria** that map to `TestStore` scenarios.
+4. **Start from the template:** `cp docs/specs/_template/spec.md docs/specs/<feature>/spec.md`, then fill
+   every section (no blanks — use `TBD`). See `docs/specs/README.md` for the full convention.
+5. **Workflow tie-in:** spec changes follow the same issue→branch→PR flow below. A behavior-change issue's
+   checklist **starts with "update `spec.md`"**, and in the PR the **spec commit precedes the code commit**.
 
 ---
 
