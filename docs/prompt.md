@@ -307,3 +307,16 @@ Task 6. 검색 결과 화면 구현 진행할게
 - 결과 0건, next page 없음, 네트워크 에러, 아바타 이미지 로드 실패,  row 데이터 일부 누락
 - next page 호출이 중복으로 일어나지 않ㄷ도록 이미 로딩 중인 상태에서는 추가 요청되지 않도록 플래그
 - 로딩 중 검색어 변경시 기존 api 호출에 대한 취소 처리, 기존 결과 리셋 필요
+
+
+---
+
+SearchFeature 소스 구조 정리
+- SearchFeature Source 하위에 폴더링 없이 파일이 추가되고 있어서 구조를 추가로 잡고싶어.
+- 코드 수정은 진행하지 않고 폴더만 변경
+
+변경 구조
+- 루트 유지: SearchFeature, SearchView
+- SearchRecent/: Feature, Item, View 
+- SearchResult/: Feeature, View, tem, API
+- WebView/: Feature, View
