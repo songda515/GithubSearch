@@ -27,6 +27,13 @@ let package = Package(
             url: "https://github.com/pointfreeco/swift-composable-architecture",
             exact: "1.25.5"
         ),
+        // Kingfisher: async image download + caching for repository avatars.
+        // Exact pin (same convention as TCA) for reproducible builds. View-layer
+        // only — used by SearchFeature's result rows, never by reducers/Core.
+        .package(
+            url: "https://github.com/onevcat/Kingfisher",
+            exact: "8.9.0"
+        ),
     ],
     targets: [
         // App composition root. Hosts feature modules via Scope.
@@ -47,6 +54,7 @@ let package = Package(
             dependencies: [
                 "Core",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "Kingfisher", package: "Kingfisher"),
             ]
         ),
         .testTarget(

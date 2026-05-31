@@ -15,8 +15,7 @@ public struct SearchView: View {
         NavigationStack {
             Group {
                 if store.hasActiveSearch {
-                    // 검색 결과 영역 (Task 6). 현재는 빈 영역.
-                    Color.clear
+                    SearchResultView(store: store.scope(state: \.result, action: \.result))
                 } else {
                     SearchRecentView(store: store.scope(state: \.recent, action: \.recent))
                 }
@@ -25,6 +24,11 @@ public struct SearchView: View {
             .searchable(text: $store.query, prompt: "저장소 검색")
             .onSubmit(of: .search) {
                 store.send(.searchSubmitted)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.destination, action: \.destination)
+            ) { webViewStore in
+                WebView(store: webViewStore)
             }
         }
     }

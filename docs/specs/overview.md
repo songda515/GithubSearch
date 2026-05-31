@@ -132,9 +132,9 @@ spec-first 원칙에 따라 동작 정의 항목은 각 Task 체크리스트 첫
 |------|--------------------------------|-----------------|-----------|------|
 | **Task 4. 검색 화면 구조** | `SearchFeature` 셸: navigation title, searchable `query` 바인딩, 자식(`SearchRecentFeature`/`SearchResultFeature`) Scope 합성, `WebViewFeature` destination 연결, `query` 상태에 따른 본문 전환 골격 | `search/spec.md`, `webview/spec.md`(destination) | — | overview |
 | **Task 5. 검색 입력 필수** | `SearchRecentFeature` 필수: 최근검색어 표시·선택→검색 전환 위임, 저장/조회. `UserDefaultsClient`(get/set) Core 구축 + 테스트 | `search-recent/spec.md`, `Core/UserDefaultsClient` | `search_input_requirement` | Task 4 |
-| **Task 6. 검색 결과 필수** | `SearchResultFeature` 필수: 전달받은 `query` 로 결과 목록 표시, 항목 선택→웹뷰 위임. `HTTPClient`(concurrency·Decodable) Core 구축 + GitHub 검색 API | `search-result/spec.md`, `webview/spec.md`, `Core/HTTPClient` | `search_result_requirement` | Task 4 |
+| **Task 6. 검색 결과 필수** | `SearchResultFeature` 필수: 전달받은 `query` 로 결과 목록·`{개수}개 저장소` 헤더·빈/에러 화면, 항목 선택→웹뷰 위임, **기본 load-more**(마지막 행 도달 시 다음 페이지). `HTTPClient`(concurrency·Decodable) Core 구축 + GitHub 검색 API, 아바타 이미지 캐싱(Kingfisher) | `search-result/spec.md`, `webview/spec.md`, `Core/HTTPClient` | `search_result_requirement` | Task 4 |
 | **Task 7. 검색 입력 추가** | 최근검색어 보강: 개별/전체 삭제, 입력 중 추천 등 | `search-recent/spec.md` | `search_input_improvement` | Task 5 |
-| **Task 8. 검색 결과 추가** | 결과 보강: 결과 수 표시, 페이지네이션, 빈/에러 상태 등 | `search-result/spec.md` | `search_result_improvement` | Task 6 |
+| **Task 8. 검색 결과 추가** | 결과 보강: 다음 페이지 **prefetch(미리 호출)**·페이지 로딩 스피너, 정렬/필터 등 | `search-result/spec.md` | `search_result_improvement` | Task 6 |
 | **Task 9. E2E full test** | 전체 플로우 통합/E2E(입력→최근→결과→웹뷰) + 빌드/테스트 게이트 전체 | 각 FeatureTests, app test target | — | Task 4–8 |
 
 > 위 표는 **경계/순서를 잡는 roadmap altitude** 다. 각 Task 의 상세 요구사항·엣지케이스·API 명세·정책은
@@ -146,3 +146,4 @@ spec-first 원칙에 따라 동작 정의 항목은 각 Task 체크리스트 첫
 |------|---------|-----------|
 | 2026-05-31 | #5 | 최초 작성 — 전체 구조 overview + 화면별 spec 골격 분해 |
 | 2026-05-31 | #7 | §7 Task 분해를 구현 단위(Task 4–9)로 갱신 (Task 4 PR 에 포함) |
+| 2026-06-01 | #19 | §7 Task 6 범위에 `{개수}` 헤더·빈/에러·기본 load-more·Kingfisher 포함, Task 8 은 prefetch·로딩 스피너·정렬 보강으로 재배분 (Task 6 PR 에 포함) |
