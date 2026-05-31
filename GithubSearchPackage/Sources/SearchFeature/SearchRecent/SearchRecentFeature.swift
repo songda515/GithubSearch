@@ -15,13 +15,28 @@ public struct SearchRecentFeature {
     public struct State: Equatable {
         /// 날짜 내림차순(P3)으로 유지되는 최근 검색어.
         public var items: [SearchRecentItem]
+        /// 상위(`SearchFeature`)가 전달하는 입력 필터 텍스트. parent 가 SoT, child 는 자동완성 계산용 (Task 7).
+        public var query: String
         @Presents public var alert: AlertState<Action.Alert>?
 
-        public init(items: [SearchRecentItem] = []) {
+        public init(items: [SearchRecentItem] = [], query: String = "") {
             self.items = items
+            self.query = query
         }
 
         public var isEmpty: Bool { items.isEmpty }
+
+        /// 입력 중(필터 텍스트가 trim 후 비어있지 않음).
+        public var isFiltering: Bool {
+            !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        /// 자동완성 후보. 대소문자 무시 contains 매칭(P10), 날짜 내림차순 유지. 빈 query → [].
+        public var suggestions: [SearchRecentItem] {
+            let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            guard !q.isEmpty else { return [] }
+            return items.filter { $0.query.lowercased().contains(q) }
+        }
     }
 
     public enum Action: Equatable {
@@ -29,6 +44,10 @@ public struct SearchRecentFeature {
         case task
         /// 최근 검색어 선택 → 검색 전환 위임.
         case itemTapped(SearchRecentItem)
+        /// 자동완성 항목 선택 → 검색 전환 위임(R12, itemTapped 와 동일 경로).
+        case suggestionTapped(SearchRecentItem)
+        /// 상위가 입력 변화를 전달 → 필터 텍스트 갱신(자동완성, R9).
+        case queryChanged(String)
         /// 개별 삭제(row 의 close 버튼, P8).
         case deleteButtonTapped(SearchRecentItem)
         /// 전체 삭제 버튼 → 확인 Alert.
@@ -74,6 +93,13 @@ public struct SearchRecentFeature {
             case let .itemTapped(item):
                 return .send(.delegate(.selected(item.query)))
 
+            case let .suggestionTapped(item):
+                return .send(.delegate(.selected(item.query)))   // R12
+
+            case let .queryChanged(query):
+                state.query = query                              // R9: suggestions 파생 갱신
+                return .none
+
             case let .deleteButtonTapped(item):
                 state.items.removeAll { $0.query == item.query }
                 persist(state.items)
@@ -94,7 +120,8 @@ public struct SearchRecentFeature {
             case let .saveQuery(query):
                 let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { return .none }          // E4
-                var items = state.items.filter { $0.query != trimmed } // P5 dedup
+                // P5/P11 dedup: 대소문자 무시로 기존 제거 후 새 케이싱을 맨 앞에.
+                var items = state.items.filter { $0.query.lowercased() != trimmed.lowercased() }
                 items.insert(SearchRecentItem(query: trimmed, date: date.now), at: 0) // P4 prepend
                 if items.count > Self.maxCount {                       // P6 cap
                     items = Array(items.prefix(Self.maxCount))
@@ -110,13 +137,15 @@ public struct SearchRecentFeature {
         .ifLet(\.$alert, action: \.alert)
     }
 
-    /// 영속 저장소에서 로드 후 날짜 내림차순 정렬(P3).
+    /// 영속 저장소에서 로드 후 날짜 내림차순 정렬(P3) + 대소문자 중복 collapse(P12, 최신 유지).
     private func load() -> [SearchRecentItem] {
         guard
             let data = userDefaults.data(Self.storageKey),
             let items = try? JSONDecoder().decode([SearchRecentItem].self, from: data)
         else { return [] }
-        return items.sorted { $0.date > $1.date }
+        let sorted = items.sorted { $0.date > $1.date }
+        var seen = Set<String>()
+        return sorted.filter { seen.insert($0.query.lowercased()).inserted }   // P12
     }
 
     private func persist(_ items: [SearchRecentItem]) {
