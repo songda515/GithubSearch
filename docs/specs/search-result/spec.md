@@ -6,13 +6,13 @@
 | 항목 | 값 |
 |------|----|
 | Feature | `search-result` |
-| 상태 | Approved (Task 6 필수 범위) |
-| 관련 이슈/PR | #19 |
+| 상태 | Approved (Task 6 필수 + Task 8 prefetch/로딩) |
+| 관련 이슈/PR | #19, #25 |
 | 최종 수정 | 2026-06-01 |
 
-> **이 spec 의 범위(Task 6 = 필수):** 전달받은 검색어로 GitHub 저장소 검색 결과 목록 표시, 저장소 개수
-> 섹션 타이틀, 결과 0건/네트워크 에러 화면, 행 선택 시 웹뷰 이동 위임, **기본 load-more**(마지막 행 도달 시
-> 다음 페이지 append)까지. **다음 페이지 prefetch(미리 호출)·페이지 로딩 스피너·정렬/필터 보강은 Task 8**.
+> **이 spec 의 범위:** (Task 6 필수) 검색 결과 목록·개수 헤더·빈/에러·행 선택 웹뷰 위임·load-more.
+> **(Task 8 고도화)** 다음 페이지 **prefetch**(현재 목록 70% 지점 도달 시 미리 호출) + 다음 페이지 **로딩 인디케이터**.
+> 정렬/필터 보강은 후속.
 
 ---
 
@@ -28,8 +28,10 @@
 - **R3.** 섹션 타이틀로 **`{저장소 총개수}개 저장소`** 를 표시한다(`total_count`).
 - **R4.** row 를 탭하면 해당 저장소 `landingUrl(html_url)` 로 **웹뷰 이동을 상위에 위임**한다.
 - **R5.** search bar 에서 **취소(cancel)** 하면 검색 입력 화면으로 돌아가고, **결과 상태는 리셋**된다.
-- **R6.** 목록 **마지막 행 도달 시 다음 페이지를 load-more** 하여 이어 붙인다.
+- **R6.** 목록을 스크롤하면 다음 페이지를 **이어 붙인다**(load-more). 트리거는 R8 참조.
 - **R7.** **결과 0건**과 **네트워크 에러**를 위한 화면을 각각 제공한다.
+- **R8. (prefetch)** 다음 페이지를 **미리 로드**한다 — 현재 로드된 목록의 **70% 지점**에 도달하면(마지막 행 전에) next page 를 호출한다.
+- **R9. (로딩 인디케이터)** 다음 페이지 로딩 중에는 목록 하단에 **로딩 상태(ProgressView)** 를 표시한다.
 
 ## 3. UI 상태 (UI States)
 
@@ -38,10 +40,11 @@
 | Idle | 검색 전(상위가 미노출) | 결과 화면 미표시(검색 입력 화면이 노출) |
 | Loading | 첫 페이지 요청 중 | `ProgressView` |
 | Loaded | 성공, `items` 1개 이상 | `{total_count}개 저장소` 헤더 + rows(아바타·이름·소유자) |
+| Loading next | `isLoadingNextPage == true` | Loaded 목록 **하단에 ProgressView**(R9) |
 | Empty | 성공이나 `total_count == 0` | "검색 결과 없음" empty view |
 | Error | 요청 실패(네트워크/HTTP/디코딩) | 에러 안내 + 재시도 |
 
-> 헤더·행 표시(원형 아바타·bold 이름·gray 소유자·말줄임)·empty/error 화면은 **뷰 레이어**이므로 화면 스크린샷으로 검증(spec §8).
+> 헤더·행 표시(원형 아바타·bold 이름·gray 소유자·말줄임)·empty/error·하단 로딩 인디케이터는 **뷰 레이어**이므로 화면 스크린샷으로 검증(spec §8).
 
 ## 4. 엣지 케이스 (Edge cases)
 
@@ -85,6 +88,8 @@
 - **P7. (미인증)** 토큰 없이 호출(미인증 rate limit 적용).
 - **P8. (load-more 가드)** load-more 진행 중에는 `isLoadingNextPage` 플래그로 추가 요청을 막는다(E6).
 - **P9. (요청 취소)** 검색어 변경/취소 시 in-flight 요청을 취소한다(`cancelInFlight`, E7).
+- **P10. (prefetch 임계값)** 행이 화면에 나타날 때 그 인덱스가 **현재 로드된 목록의 70% 이상**(`index >= floor(count * 0.7)`)이면 다음 페이지를 미리 호출한다(R8). 70% 미만이면 호출하지 않는다.
+- **P11. (로딩 인디케이터)** `isLoadingNextPage` 동안 목록 하단에 ProgressView 를 표시한다(R9).
 
 ## 7. TCA 매핑 (State / Action / Client)
 - **모델 `RepositoryItem`**: `id: Int`, `thumbnail: URL?`, `title: String`, `description: String`, `landingUrl: URL?`. `Equatable`, `Identifiable`(`id`), `Sendable`.
@@ -100,7 +105,7 @@
 - **Action**:
   - `searchRequested(String)` — 새 검색: 리셋(P2) → 첫 페이지 fetch(`cancelInFlight`, P9).
   - `searchResponse(Result<GitHubSearchResponse, NetworkError>)` — 첫 페이지 결과.
-  - `reachedBottom` — 마지막 행 표시 → load-more(P3·P4·P8).
+  - `rowAppeared(RepositoryItem)` — 행이 화면에 나타남 → 인덱스가 70% 이상이면 다음 페이지 prefetch(R8·P10·P4·P8).
   - `nextPageResponse(Result<GitHubSearchResponse, NetworkError>)` — 다음 페이지 결과(append, P5).
   - `searchCleared` — 취소/클리어 → 요청 취소 + 리셋(R5·E7).
   - `rowTapped(RepositoryItem)` — 행 선택 → `delegate(.repositorySelected(item))`.
@@ -113,10 +118,12 @@
 - [ ] **R2/P5** 성공 응답 → `items` 가 DTO→`RepositoryItem` 매핑값(아바타/이름/소유자/url)과 일치, `id` 식별.
 - [ ] **R7/E1** `total_count == 0` 응답 → `phase == .empty`, `items` 비어 있음.
 - [ ] **R7/E3** 실패 응답(`NetworkError`) → `phase == .error`.
-- [ ] **R6/P3** `reachedBottom`(hasNextPage) → `currentPage+1` 요청 → `items` append(개수 증가).
+- [ ] **R8/P10** 70% 이상 인덱스 행 `rowAppeared` (hasNextPage) → `currentPage+1` 요청 → `items` append(개수 증가).
+- [ ] **R8/P10** 70% 미만 인덱스 행 `rowAppeared` → no-op(요청 없음).
 - [ ] **P5** 다음 페이지에 중복 `id` 포함 → 중복 제거(개수 = 고유 id 수).
-- [ ] **E2/P4** `hasNextPage == false` 에서 `reachedBottom` → no-op(요청 없음).
-- [ ] **E6/P8** load-more 진행 중 `reachedBottom` 재진입 → 추가 요청 없음.
+- [ ] **E2/P4** `hasNextPage == false` 에서 `rowAppeared` → no-op(요청 없음).
+- [ ] **E6/P8** load-more 진행 중 `rowAppeared` 재진입 → 추가 요청 없음.
+- [ ] **R9/P11** `isLoadingNextPage` 동안 하단 ProgressView → 화면 스크린샷(`/verify-screen`)으로 검증.
 - [ ] **E7/P9** 로딩 중 `searchRequested`(새 검색) → 기존 요청 취소 + page1 리셋.
 - [ ] **R5** `searchCleared` → in-flight 취소 + state 리셋(`phase == .idle`, items 비움).
 - [ ] **R4** `rowTapped` → `delegate(.repositorySelected(item))`.
@@ -128,3 +135,4 @@
 |------|---------|-----------|
 | 2026-05-31 | #5 | 골격 스캐폴딩 (섹션1만 작성) |
 | 2026-06-01 | #19 | Task 6 필수 범위 구체화(요구사항·UI·엣지·API·정책·TCA 매핑·수용 기준), 기본 load-more 포함, 참고 이미지 이동 |
+| 2026-06-01 | #25 | Task 8 고도화: R8 70% prefetch(`reachedBottom`→`rowAppeared(item)`, P10), R9 다음 페이지 로딩 인디케이터(P11, Loading next 상태) |

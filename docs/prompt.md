@@ -362,3 +362,12 @@ docs/search_input_improvement.png 를 spec 하위로 이동
 정책이 잘못 정의된게 있어서 정정해줘.
 1. 검색어 입력시 키보드에서 search (enter) 입력시 바로 검색 결과로 랜딩되어야해
 2. 날짜 표기는 06.01 이 아니라 06.01. 으로 맞추고싶어.
+
+
+---
+
+task 8: 검색 화면 고도화
+1. scroll 중간에 next page 를 미리 로드한다. 
+- UX 관점에서 현재 보여지는 페이지의 70% 기준에서 next page 호출
+
+2. Next page 로딩할때 로딩 상태를 보여준다.
