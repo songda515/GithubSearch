@@ -67,7 +67,11 @@ public struct SearchFeature {
             switch action {
             case .binding:
                 // 타이핑(입력 중)은 결과를 idle 로 되돌리고 자식에 query 를 전달한다 → 입력 영역(최근/자동완성).
-                // 빈 query 면 최근, 비어있지 않으면 자동완성. 결과 진입은 엔터/선택에서만 (P4, R5/E7).
+                // 단, 결과가 이미 그 검색어로 떠 있으면(제출 직후 동일 텍스트 re-commit) 결과를 유지한다.
+                // 결과 진입은 엔터/선택에서만 (P4, R5/E7).
+                if state.isShowingResults && state.sanitizedQuery == state.result.query {
+                    return .send(.recent(.queryChanged(state.query)))
+                }
                 return .concatenate(
                     .send(.result(.searchCleared)),
                     .send(.recent(.queryChanged(state.query)))

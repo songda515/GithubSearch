@@ -107,6 +107,26 @@ struct SearchFeatureTests {
         #expect(store.state.isShowingResults == false)
     }
 
+    // P4: 결과가 이미 그 검색어로 떠 있으면(제출 직후 동일 텍스트 re-commit) 결과 유지(리셋 안 함).
+    @Test
+    func bindingWithSearchedQueryKeepsResults() async {
+        let store = TestStore(
+            initialState: SearchFeature.State(
+                query: "swift",
+                result: SearchResultFeature.State(query: "swift", phase: .loaded)
+            )
+        ) {
+            SearchFeature()
+        }
+
+        await store.send(.binding(.set(\.query, "swift")))   // 동일 텍스트
+        await store.receive(.recent(.queryChanged("swift"))) {
+            $0.recent.query = "swift"
+        }
+        // searchCleared 미발생 → 결과 유지.
+        #expect(store.state.isShowingResults == true)
+    }
+
     // R7 / P7: 검색 확정 → 결과 로드보다 먼저 최근 검색어 저장, 그 다음 결과 요청.
     @Test
     func submitSavesRecentThenRequestsResults() async {

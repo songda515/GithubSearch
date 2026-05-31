@@ -59,6 +59,7 @@
 - **P2. (query 유지)** 검색 확정 시 사용자가 입력한 `query` 문자열은 **그대로 유지**한다(표시용 변형 없음). 검색에 쓰는 유효 검색어는 파생 프로퍼티 `sanitizedQuery` 로만 노출한다.
 - **P3. (제출=결과 진입)** 검색 확정/최근·자동완성 선택 시 결과 로드보다 먼저 최근 검색어 저장(search-recent P7) 후 결과를 요청한다(Task 6).
 - **P4. (입력 중=결과 리셋)** 검색어 타이핑(`binding`)은 "입력 중"으로 간주해 **결과를 idle 로 리셋**하고 자식에 `query` 를 전달한다 → 입력 영역(최근/자동완성) 노출. 결과 진입은 엔터/선택에서만 일어난다.
+  단, **결과가 이미 그 검색어(`result.query`)로 떠 있으면**(제출 직후 동일 텍스트 re-commit 등) 결과를 **유지**한다(불필요한 리셋 방지).
 
 ## 7. TCA 매핑 (State / Action / Client)
 - **State**:
@@ -83,7 +84,8 @@
 - [ ] **E4** → 테스트: cancel(=`query` 를 `""` 로 set) 후 `hasActiveSearch == false` (Idle).
 - [ ] **R2 / R3 / 입력 중 collapse** → 화면 스크린샷(XcodeBuildMCP)으로 검증(뷰 레이어).
 - [ ] **P4** → 테스트: `binding`(타이핑) 시 `.result(.searchCleared)` 와 `.recent(.queryChanged(query))` 가 전파된다.
-- [ ] **P4 / isShowingResults** → 테스트: `result.phase == .loaded` 에서 `binding`(타이핑) → 결과 idle 리셋으로 `isShowingResults == false`.
+- [ ] **P4 / isShowingResults** → 테스트: `result.phase == .loaded` 에서 `binding`(다른 텍스트) → 결과 idle 리셋으로 `isShowingResults == false`.
+- [ ] **P4 (유지)** → 테스트: 결과가 `result.query` 로 떠 있을 때 동일 텍스트 `binding` → searchCleared 미발생, `isShowingResults == true` 유지.
 
 ## 9. 변경 이력 (Changelog)
 | 날짜 | 이슈/PR | 변경 내용 |
