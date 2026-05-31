@@ -94,6 +94,10 @@ Per-screen behavior is defined by **specs, not code**. The spec is the contract;
    every section (no blanks — use `TBD`). See `docs/specs/README.md` for the full convention.
 5. **Workflow tie-in:** spec changes follow the same issue→branch→PR flow below. A behavior-change issue's
    checklist **starts with "update `spec.md`"**, and in the PR the **spec commit precedes the code commit**.
+6. **Use the `implement-spec` skill.** When implementing or changing any screen/feature/Client, drive the
+   work with the project skill `.claude/skills/implement-spec` (invoke `/implement-spec`). It enforces this
+   exact order: spec 구체화 → §7 TCA 매핑 → §8 수용 기준을 `TestStore` 로(TDD RED→GREEN) → 검증 게이트.
+   "코드부터 짜고 spec 을 맞추는" 흐름은 금지.
 
 ---
 
@@ -121,6 +125,25 @@ xcodebuild test -scheme GithubSearch -skipMacroValidation \
 
 Targeting by UDID is more robust than by name: simulator *names* available to `xcodebuild`
 can differ from `simctl` across Xcode versions. Any simulator on iOS ≥ 17.0 works.
+
+### Screen verification — XcodeBuildMCP (UI 시나리오)
+
+Reducer 단위는 `TestStore` 로 검증하지만, **뷰 레이어(타이틀/플레이스홀더/empty view/alert 등 화면 표시)는
+실제 시뮬레이터 화면으로 확인**한다. 이를 위해 `XcodeBuildMCP` 를 도입했다(`.mcp.json`,
+`npx -y xcodebuildmcp@latest mcp`). MCP 서버가 연결되면 shell 보다 XcodeBuildMCP 도구를 우선 사용한다.
+
+표준 시나리오 검증 플로우:
+
+1. **세션 디폴트 확인** — 첫 build/run 전 `session_show_defaults` 로 project/scheme/simulator 확인
+   (없으면 `discover_projs` → `session_set_defaults`).
+2. **빌드·실행** — `build_run_sim` (scheme `GithubSearch`, iOS 17+ 시뮬레이터).
+3. **시나리오별 화면 캡처** — 화면별 spec 의 UI 상태/엣지케이스마다 상태를 만들고 `screenshot`
+   (필요 시 `snapshot_ui` 로 좌표 기반 요소 확인, `tap`/`type_text` 로 상태 전환).
+   예) 검색 입력 화면: ① empty view ② 최근검색어 노출 ③ 전체삭제 alert.
+4. **결과 기록** — 캡처 결과가 spec·참고 화면과 일치하는지 확인하고 PR 검증 결과(또는 코멘트)에 남긴다.
+
+> MCP 서버 미연결(세션 재시작 전) 시에는 동일 엔진인 **XcodeBuildMCP CLI**
+> (`npx -y xcodebuildmcp@latest simulator build-and-run|screenshot ...`) 또는 `xcrun simctl` 로 대체한다.
 
 ---
 
@@ -161,4 +184,5 @@ GH_TOKEN="$TOK" gh pr merge --merge              # merge commit, not squash/reba
 ## Notes
 
 - `.gitignore` is configured for Xcode + SwiftPM (`.build/`, `.swiftpm/`, `xcuserdata/`, `DerivedData/`). `Package.resolved` is committed for reproducible dependency resolution.
-- Rules and skills (`.claude/rules`, `.claude/skills`) are **not yet configured** — this CLAUDE.md is the current harness baseline.
+- Skills: `.claude/skills/implement-spec` is configured (SDD-driven implementation; see SDD §6). `.claude/rules` is not yet configured.
+- MCP: `.mcp.json` registers `XcodeBuildMCP` for UI/screen verification (see "Screen verification" above). 활성화는 Claude Code 재시작 시 반영.
