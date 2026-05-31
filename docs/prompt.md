@@ -181,3 +181,48 @@ XcodeBuildMCP 검증 결과도 PR 에 댓글로 추가해줘.
 ---
 
 https://github.com/songda515/GithubSearch/pull/8 의 후속 작업으로 수정을 진행해줘.
+
+
+---
+
+Task 5. 검색 입력 화면 구현 진행
+
+## 선행 작업
+specs/search-recent 하위에 search_result_{}.png 파일 이동
+XcodeBuildMCP 시나리오 검증 플로우도 CLAUDE.md 에 추가
+implement-spec 스킬 사용에 대해 CLAUDE.md 추가 
+
+## 화면
+1. 검색어 입력전
+- 최근 검색어를 최대 10개까지 노출
+- 최근 검색어가 없을 경우 empty view 제공
+2. 검색어 입력중
+- SearchFeature 의 query 활용
+- 자동완성은  improvement 에서 진행
+3. 검색어 입력완료, 최근 검색어 클릭
+- 최근 검색어 저장, 검색 결과가 로드되기 전에 선행
+- 검색결과 화면으로 이동, 다음 task 에서 진행
+4. 전체 삭제 버튼 클릭시
+- Alert 화면에서 전체 삭제 재확인
+
+## UI
+- seearch_result_requirement.PNG 참고
+- 최근 검색 section title 
+- 최근 검색어 목록 row: {검색어} {close button}
+- 전체 삭제 button 제공
+- 전체 삭제 alert 제공
+
+## 데이터구조
+1. SearchRecentItem
+- String, Date 기준으로 struct 데이터모델 생성
+
+## CoreModule
+- UserDefaultsClient 를 생성해서 test code 별도 셋업
+
+## 정책
+1. 최근 검색어는 앱 재시작시 유지되어야함
+2. 최근 검색어 저장 개수: max 10개
+3. 최근 검색어 노출은 날짜 기준 내림차순 정렬
+- 최근 검색어 추가시 맨 앞 삽입
+- 중복 검색어 추가시 기존 제거 후 맨 앞 삽입
+- 10개 초과시 가장 오래된 검색어 제거

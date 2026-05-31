@@ -43,7 +43,7 @@ GithubSearch 는 GitHub 저장소를 검색하고 결과를 웹뷰로 열어보�
 > 검색결과(`SearchResultFeature`) 사이에서 전환된다. 전환의 **구체 조건**은 화면별 spec 소관.
 
 **참고 화면(스크린샷):**
-- 검색 입력/최근검색어 — [`../search_input_requirement.PNG`](../search_input_requirement.PNG), [`../search_input_improvement.PNG`](../search_input_improvement.PNG)
+- 검색 입력/최근검색어 — [`search-recent/search_input_requirement.PNG`](search-recent/search_input_requirement.PNG), [`../search_input_improvement.PNG`](../search_input_improvement.PNG)
 - 검색 결과 — [`../search_result_requirement.PNG`](../search_result_requirement.PNG), [`../search_result_improvement.PNG`](../search_result_improvement.PNG)
 
 ## 3. Feature Reducer 트리 (Composition)
