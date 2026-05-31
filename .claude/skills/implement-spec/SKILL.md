@@ -31,7 +31,7 @@ NOT: 오타·리네임·포맷팅 등 정책과 무관한 변경.
 4. **하네스 규칙 준수.** View+Reducer+`@ObservableState`; 의존성은 `@DependencyClient`(live/test/preview 3종);
    `Sendable`, 테스트/리듀서 타입 `@MainActor`; 모듈 추가는 `Package.swift` 만 편집.
 5. **검증 게이트.** `swift test --package-path GithubSearchPackage` → `xcodebuild build/test`(iOS 17 sim).
-   UI 구조/표시는 화면 스크린샷(XcodeBuildMCP 등)으로 확인. REQUIRED: superpowers:verification-before-completion.
+   UI 구조/표시는 `verify-screen` 스킬로 확인(화면검증 절차 SSoT). REQUIRED: superpowers:verification-before-completion.
 6. **동기화.** 구현 중 정책이 바뀌면 spec 으로 돌아가 갱신 후 코드 반영. spec ↔ 코드 항상 일치.
 
 ```dot
