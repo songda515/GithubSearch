@@ -3,7 +3,7 @@ import Kingfisher
 import SwiftUI
 
 /// 검색 결과 목록. `{개수}개 저장소` 헤더 + 원형 아바타·이름(bold)·소유자(gray) 행, 빈/에러 화면,
-/// 마지막 행 도달 시 load-more. (docs/specs/search-result/spec.md §3)
+/// 70% 지점 prefetch + 다음 페이지 로딩 인디케이터. (docs/specs/search-result/spec.md §3)
 public struct SearchResultView: View {
     let store: StoreOf<SearchResultFeature>
 
@@ -41,12 +41,17 @@ public struct SearchResultView: View {
                             row(item)
                         }
                         .buttonStyle(.plain)
-                        .onAppear {
-                            // 마지막 행 도달 시 다음 페이지 load-more (R6).
-                            if item.id == store.items.last?.id {
-                                store.send(.reachedBottom)
-                            }
+                        // 행이 나타날 때마다 알림 → reducer 가 70% 지점이면 prefetch (R8).
+                        .onAppear { store.send(.rowAppeared(item)) }
+                    }
+                    if store.isLoadingNextPage {
+                        // 다음 페이지 로딩 인디케이터 (R9/P11).
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                            Spacer()
                         }
+                        .listRowSeparator(.hidden)
                     }
                 } header: {
                     Text("\(store.totalCount)개 저장소")
