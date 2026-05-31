@@ -38,9 +38,12 @@ public struct SearchFeature {
         /// trim 후 검색어가 존재하는가.
         public var hasActiveSearch: Bool { !sanitizedQuery.isEmpty }
 
-        /// 본문이 검색 결과를 보여주는가. 결과가 idle 이 아니면(검색 요청됨) 결과, 아니면 입력 영역
-        /// (최근/자동완성). 타이핑(`binding`)은 결과를 idle 로 되돌린다 (search §3, P4).
-        public var isShowingResults: Bool { result.phase != .idle }
+        /// 본문이 검색 결과를 보여주는가. **현재 입력이 검색된 query 와 일치하고** 결과가 idle 이 아닐 때만
+        /// 결과를 보여준다. 입력을 편집해 검색어와 달라지면 자동완성/최근으로 되돌아간다 (search §3, P4).
+        /// 파생값이라 엔터/선택의 결과 진입이 binding 과 경쟁하지 않는다.
+        public var isShowingResults: Bool {
+            result.phase != .idle && sanitizedQuery == result.query
+        }
     }
 
     public enum Action: BindableAction, Equatable {
@@ -66,16 +69,16 @@ public struct SearchFeature {
         Reduce { state, action in
             switch action {
             case .binding:
-                // 타이핑(입력 중)은 결과를 idle 로 되돌리고 자식에 query 를 전달한다 → 입력 영역(최근/자동완성).
-                // 단, 결과가 이미 그 검색어로 떠 있으면(제출 직후 동일 텍스트 re-commit) 결과를 유지한다.
-                // 결과 진입은 엔터/선택에서만 (P4, R5/E7).
-                if state.isShowingResults && state.sanitizedQuery == state.result.query {
-                    return .send(.recent(.queryChanged(state.query)))
+                // 자식에 query 전달(자동완성). 표시 전환은 isShowingResults 파생이 담당하므로 binding 은
+                // 결과를 건드리지 않는다 — 단, 입력이 검색된 query 와 달라지면(편집/취소) 진행 중 요청을
+                // 취소하고 결과를 리셋한다(E7). 결과 진입(엔터/선택)은 binding 과 경쟁하지 않는다 (P4).
+                if state.result.phase != .idle, state.sanitizedQuery != state.result.query {
+                    return .concatenate(
+                        .send(.result(.searchCleared)),
+                        .send(.recent(.queryChanged(state.query)))
+                    )
                 }
-                return .concatenate(
-                    .send(.result(.searchCleared)),
-                    .send(.recent(.queryChanged(state.query)))
-                )
+                return .send(.recent(.queryChanged(state.query)))
 
             case .searchSubmitted:
                 // 결과 로드보다 먼저 최근 검색어 저장(P7), 그 다음 결과 요청.

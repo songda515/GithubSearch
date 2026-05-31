@@ -13,7 +13,7 @@
 
 > **이 spec 의 범위:** (Task 5 필수) 최근 검색어 표시·개별/전체 삭제·영속화, 검색 확정/선택 시 "검색 결과
 > 로드보다 먼저" 저장. **(Task 7 자동완성)** 입력 중 최근 검색어 자동완성(대소문자 무시 contains), 자동완성
-> 전용 row UI(검색어 하이라이트 + 날짜 `MM.dd`), 저장/로드 대소문자 무시 dedup. 검색 결과 네비게이션은 Task 6.
+> 전용 row UI(검색어 하이라이트 + 날짜 `MM.dd.`), 저장/로드 대소문자 무시 dedup. 검색 결과 네비게이션은 Task 6.
 
 ---
 
@@ -32,7 +32,7 @@
 - **R7.** 검색 확정 / 최근 검색어 클릭 시, **검색 결과 로드보다 먼저** 검색어를 최근 검색어에 저장한다.
 - **R8.** 최근 검색어 클릭 시 검색 결과로의 이동을 상위(`SearchFeature`)에 위임한다(네비게이션 자체는 Task 6).
 - **R9. (자동완성)** 검색어 입력 중에는 최근 검색어 중 입력 텍스트가 **contains 매칭**되는 항목을 자동완성으로 노출한다.
-- **R10. (자동완성 row)** 자동완성 row 는 `{검색어}` `{spacer}` `{검색 날짜}` 구성: 검색어는 **일치 텍스트 bold, 그 외 normal** 하이라이트, 날짜는 **`MM.dd`** 포맷(Sendable `Date.VerbatimFormatStyle`).
+- **R10. (자동완성 row)** 자동완성 row 는 `{검색어}` `{spacer}` `{검색 날짜}` 구성: 검색어는 **일치 텍스트 bold, 그 외 normal** 하이라이트, 날짜는 **`MM.dd.`** 포맷(예: `06.01.`, 끝에 마침표 포함, Sendable `Date.VerbatimFormatStyle`).
 - **R11. (UI 구분)** 자동완성 노출 UI 와 최근 검색어 노출 UI 는 **다른 레이아웃**으로 구현한다(데이터타입 `SearchRecentItem` 은 동일 사용).
 - **R12. (자동완성 선택)** 자동완성 항목 클릭 시 최근 검색어 클릭과 **동일하게** 검색 결과 화면으로 이동한다(저장 선행 → 결과).
 - **R13. (엔터)** 자동완성을 선택하지 않고 검색어에서 엔터를 누르면 검색 결과 화면으로 랜딩한다(R7 흐름 유지).
@@ -44,7 +44,7 @@
 | Empty | `query` 빈 + `items` 0개 | "최근 검색" 영역에 empty view, 전체 삭제 버튼 숨김 |
 | List | `query` 빈 + `items` 1개 이상 | "최근 검색" title + rows(`{검색어}`+close) + 전체 삭제 버튼 |
 | DeleteAll Confirm | 전체 삭제 버튼 탭 | 전체 삭제 재확인 **Alert**(취소 / 삭제) |
-| Autocomplete | `query` 입력 중 + 매칭 1개 이상 | 자동완성 rows(`{검색어 하이라이트}` `{spacer}` `{날짜 MM.dd}`). 헤더·삭제 버튼 없음 |
+| Autocomplete | `query` 입력 중 + 매칭 1개 이상 | 자동완성 rows(`{검색어 하이라이트}` `{spacer}` `{날짜 MM.dd.}`). 헤더·삭제 버튼 없음 |
 | Autocomplete-Empty | `query` 입력 중 + 매칭 0개 | "검색어 없음" view |
 
 > 입력 중(`query` 비어있지 않음)은 List/Empty 대신 Autocomplete 계열을 노출한다. empty view / section title /
@@ -81,7 +81,7 @@
 - **P10. (매칭 규칙)** 자동완성 매칭은 **대소문자 무시 contains**(부분 문자열). **한글 초성 검색은 미지원.**
 - **P11. (저장 dedup, 대소문자 무시)** `saveQuery` 중복 판정은 대소문자 무시. 같은(대소문자 무시) 검색어가 있으면 제거 후 **새로 입력한 케이싱**을 맨 앞에 삽입.
 - **P12. (로드 collapse)** 로드 시 기존 저장 데이터의 대소문자 중복도 **collapse**(대소문자 무시로 묶어 **가장 최신 1건만** 유지). 동일 규칙으로 정확도 보정.
-- **P13. (날짜 표시)** 자동완성 row 의 날짜는 **`MM.dd`** 로 표시한다. Sendable 값 타입 `Date.VerbatimFormatStyle` 사용(`DateFormatter` 금지).
+- **P13. (날짜 표시)** 자동완성 row 의 날짜는 **`MM.dd.`**(예: `06.01.`, 끝에 마침표 포함) 로 표시한다. Sendable 값 타입 `Date.VerbatimFormatStyle` 사용(`DateFormatter` 금지).
 
 ## 7. TCA 매핑 (State / Action / Client)
 - **모델 `SearchRecentItem`**: `query: String`, `date: Date`. `Codable`, `Equatable`, `Identifiable`(`id == query`, P5 로 query 유일).
@@ -128,4 +128,4 @@
 |------|---------|-----------|
 | 2026-05-31 | #5 | 골격 스캐폴딩 (섹션1만 작성) |
 | 2026-05-31 | #11 | Task 5 필수 범위 구체화(요구사항·UI·엣지·정책·TCA 매핑·수용 기준) |
-| 2026-06-01 | #23 | Task 7 자동완성 추가(R9–R13, Autocomplete UI 상태, E6–E8, P10–P13 대소문자 무시 매칭·dedup·collapse·MM.dd, child `query`/`suggestions`/`queryChanged`/`suggestionTapped`) |
+| 2026-06-01 | #23 | Task 7 자동완성 추가(R9–R13, Autocomplete UI 상태, E6–E8, P10–P13 대소문자 무시 매칭·dedup·collapse·`MM.dd.`, child `query`/`suggestions`/`queryChanged`/`suggestionTapped`); 날짜 포맷 `MM.dd.`(끝 마침표) 로 정정 |

@@ -36,8 +36,7 @@ struct SearchFeatureTests {
         await store.send(.binding(.set(\.query, "swift"))) {
             $0.query = "swift"
         }
-        // 타이핑은 결과를 idle 리셋(이미 idle → 무변) + 자식에 query 전달(P4).
-        await store.receive(.result(.searchCleared))
+        // idle 에서 타이핑은 결과를 건드리지 않고 자식에 query 만 전달(P4).
         await store.receive(.recent(.queryChanged("swift"))) {
             $0.recent.query = "swift"
         }
@@ -151,6 +150,8 @@ struct SearchFeatureTests {
         await store.receive(.result(.searchResponse(.success(RepositoryPage(items: [], totalCount: 0))))) {
             $0.result.phase = .empty
         }
+        // P3: 엔터 → 즉시 결과 표시.
+        #expect(store.state.isShowingResults == true)
     }
 
     // 빈/공백 검색 확정은 아무 동작도 하지 않는다.

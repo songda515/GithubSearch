@@ -95,9 +95,9 @@ public struct SearchRecentView: View {
             + Text(text[range.upperBound...])
     }
 
-    /// `MM.dd` 고정 포맷. Sendable 값 타입(P13).
+    /// `MM.dd.` 고정 포맷. Sendable 값 타입(P13).
     private static let monthDay = Date.VerbatimFormatStyle(
-        format: "\(month: .twoDigits).\(day: .twoDigits)",
+        format: "\(month: .twoDigits).\(day: .twoDigits).",
         timeZone: .current,
         calendar: .current
     )
