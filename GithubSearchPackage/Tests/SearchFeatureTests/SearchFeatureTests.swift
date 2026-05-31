@@ -36,6 +36,11 @@ struct SearchFeatureTests {
         await store.send(.binding(.set(\.query, "swift"))) {
             $0.query = "swift"
         }
+        // 타이핑은 결과를 idle 리셋(이미 idle → 무변) + 자식에 query 전달(P4).
+        await store.receive(.result(.searchCleared))
+        await store.receive(.recent(.queryChanged("swift"))) {
+            $0.recent.query = "swift"
+        }
     }
 
     // E1 / P1: 공백만 입력하면 검색어 없음과 동일하다.
@@ -72,7 +77,34 @@ struct SearchFeatureTests {
         await store.receive(.result(.searchCleared)) {
             $0.result = SearchResultFeature.State()
         }
+        await store.receive(.recent(.queryChanged("")))
         #expect(store.state.hasActiveSearch == false)
+        #expect(store.state.isShowingResults == false)
+    }
+
+    // P4 / isShowingResults: 결과가 뜬 상태에서 재타이핑 → 결과 idle 리셋(자동완성으로 복귀).
+    @Test
+    func editingResultsReturnsToInput() async {
+        let store = TestStore(
+            initialState: SearchFeature.State(
+                query: "swift",
+                result: SearchResultFeature.State(query: "swift", phase: .loaded)
+            )
+        ) {
+            SearchFeature()
+        }
+        #expect(store.state.isShowingResults == true)
+
+        await store.send(.binding(.set(\.query, "swiftu"))) {
+            $0.query = "swiftu"
+        }
+        await store.receive(.result(.searchCleared)) {
+            $0.result = SearchResultFeature.State()
+        }
+        await store.receive(.recent(.queryChanged("swiftu"))) {
+            $0.recent.query = "swiftu"
+        }
+        #expect(store.state.isShowingResults == false)
     }
 
     // R7 / P7: 검색 확정 → 결과 로드보다 먼저 최근 검색어 저장, 그 다음 결과 요청.
