@@ -16,6 +16,7 @@ let package = Package(
     products: [
         .library(name: "AppFeature", targets: ["AppFeature"]),
         .library(name: "SearchFeature", targets: ["SearchFeature"]),
+        .library(name: "Core", targets: ["Core"]),
     ],
     dependencies: [
         // TCA pinned to an exact stable version for reproducible builds.
@@ -40,16 +41,28 @@ let package = Package(
             name: "AppFeatureTests",
             dependencies: ["AppFeature"]
         ),
-        // Search screen (Task 4: shell — title, search bar, empty content area).
+        // Search screen: SearchFeature (shell) + SearchRecentFeature (recent searches).
         .target(
             name: "SearchFeature",
             dependencies: [
+                "Core",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             ]
         ),
         .testTarget(
             name: "SearchFeatureTests",
-            dependencies: ["SearchFeature"]
+            dependencies: ["SearchFeature", "Core"]
+        ),
+        // Core: reusable, screen-agnostic Clients (e.g. UserDefaultsClient).
+        .target(
+            name: "Core",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            ]
+        ),
+        .testTarget(
+            name: "CoreTests",
+            dependencies: ["Core"]
         ),
     ],
     // Swift 6 language mode for full data-race safety (strict concurrency).

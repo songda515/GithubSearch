@@ -1,9 +1,9 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// Search screen shell. Large navigation title + a `.searchable` bar over an
-/// (currently empty) content area. Title collapse and the Cancel button are
-/// `.searchable`'s built-in behavior. Recent/results fill the content in Task 5/6.
+/// Search screen shell. Large navigation title + a `.searchable` bar. When there is no
+/// active query the content is the recent-searches list; the results area arrives in
+/// Task 6. Title collapse and the Cancel button are `.searchable` built-ins.
 public struct SearchView: View {
     @Bindable var store: StoreOf<SearchFeature>
 
@@ -13,14 +13,19 @@ public struct SearchView: View {
 
     public var body: some View {
         NavigationStack {
-            // 하단 컨텐츠 영역: 현재는 빈 영역.
-            Color.clear
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .navigationTitle("Search")
-                .searchable(text: $store.query, prompt: "저장소 검색")
-                .onSubmit(of: .search) {
-                    store.send(.searchSubmitted)
+            Group {
+                if store.hasActiveSearch {
+                    // 검색 결과 영역 (Task 6). 현재는 빈 영역.
+                    Color.clear
+                } else {
+                    SearchRecentView(store: store.scope(state: \.recent, action: \.recent))
                 }
+            }
+            .navigationTitle("Search")
+            .searchable(text: $store.query, prompt: "저장소 검색")
+            .onSubmit(of: .search) {
+                store.send(.searchSubmitted)
+            }
         }
     }
 }
