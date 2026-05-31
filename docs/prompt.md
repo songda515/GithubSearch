@@ -165,3 +165,19 @@ Task 4: 검색 화면 구조 구현 진행해줘.
 ---
 
 이어서 진행해줘.
+
+
+---
+
+Continue Task 4: view the simulator screenshot, then open PR #7 and merge.
+
+
+---
+
+xcrun simctl로 화면을 검증한 결과와 동일하게
+XcodeBuildMCP 검증 결과도 PR 에 댓글로 추가해줘.
+
+
+---
+
+https://github.com/songda515/GithubSearch/pull/8 의 후속 작업으로 수정을 진행해줘.
