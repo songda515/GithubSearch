@@ -52,8 +52,8 @@ public struct SearchResultFeature {
         case searchRequested(String)
         /// 첫 페이지 결과.
         case searchResponse(Result<RepositoryPage, NetworkError>)
-        /// 마지막 행 표시 → load-more(P3·P4·P8).
-        case reachedBottom
+        /// 행이 화면에 나타남 → 인덱스가 70% 이상이면 다음 페이지 prefetch(R8·P10·P4·P8).
+        case rowAppeared(RepositoryItem)
         /// 다음 페이지 결과(append, P5).
         case nextPageResponse(Result<RepositoryPage, NetworkError>)
         /// 취소/검색어 클리어 → in-flight 취소 + 리셋(R5·E7).
@@ -66,6 +66,9 @@ public struct SearchResultFeature {
     }
 
     private enum CancelID { case search }
+
+    /// 현재 로드된 목록의 이 비율 지점에 도달하면 다음 페이지를 미리 호출한다 (P10).
+    static let prefetchThreshold = 0.7
 
     @Dependency(\.httpClient) var httpClient
 
@@ -97,11 +100,15 @@ public struct SearchResultFeature {
                 state.phase = .error                                          // E3
                 return .none
 
-            case .reachedBottom:
+            case let .rowAppeared(item):
                 guard state.phase == .loaded,
                       state.hasNextPage,
-                      !state.isLoadingNextPage                                // E6/P8
+                      !state.isLoadingNextPage,                               // E6/P8
+                      let index = state.items.index(id: item.id)
                 else { return .none }
+                // 현재 목록의 70% 지점 이상에서만 다음 페이지를 미리 호출 (R8/P10).
+                let threshold = Int(Double(state.items.count) * Self.prefetchThreshold)
+                guard index >= threshold else { return .none }
                 state.isLoadingNextPage = true
                 let nextPage = state.currentPage + 1
                 return fetch(query: state.query, page: nextPage) { .nextPageResponse($0) }

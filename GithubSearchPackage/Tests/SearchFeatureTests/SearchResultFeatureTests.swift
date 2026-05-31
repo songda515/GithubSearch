@@ -115,10 +115,10 @@ struct SearchResultFeatureTests {
         }
     }
 
-    // MARK: R6/P3 — reachedBottom appends next page
+    // MARK: R8/P10 — prefetch (70%) appends next page
 
     @Test
-    func reachedBottomLoadsNextPageAndAppends() async {
+    func prefetchLoadsNextPageAndAppends() async {
         let data1 = searchJSON(totalCount: 100, ids: Array(1...30))
         let data2 = searchJSON(totalCount: 100, ids: Array(31...60))
         let store = TestStore(initialState: SearchResultFeature.State()) {
@@ -141,7 +141,7 @@ struct SearchResultFeatureTests {
             $0.hasNextPage = true
             $0.phase = .loaded
         }
-        await store.send(.reachedBottom) {
+        await store.send(.rowAppeared(item(30))) {   // index 29 >= 70% of 30 (=21) → prefetch
             $0.isLoadingNextPage = true
         }
         await store.receive(.nextPageResponse(.success(page(Array(31...60), totalCount: 100)))) {
@@ -178,7 +178,7 @@ struct SearchResultFeatureTests {
             $0.hasNextPage = true
             $0.phase = .loaded
         }
-        await store.send(.reachedBottom) {
+        await store.send(.rowAppeared(item(30))) {   // index 29 >= 70% of 30 (=21) → prefetch
             $0.isLoadingNextPage = true
         }
         await store.receive(.nextPageResponse(.success(page(Array(25...54), totalCount: 100)))) {
@@ -190,10 +190,10 @@ struct SearchResultFeatureTests {
         #expect(store.state.items.count == 54)   // 1...54 unique
     }
 
-    // MARK: E2/P4 — no next page → reachedBottom is a no-op
+    // MARK: E2/P4 — no next page → rowAppeared is a no-op
 
     @Test
-    func reachedBottomNoOpWhenNoNextPage() async {
+    func prefetchNoOpWhenNoNextPage() async {
         let store = TestStore(
             initialState: SearchResultFeature.State(
                 query: "swift",
@@ -207,13 +207,13 @@ struct SearchResultFeatureTests {
             SearchResultFeature()
         }
 
-        await store.send(.reachedBottom)   // guarded — no effect, no state change
+        await store.send(.rowAppeared(item(1)))   // hasNextPage false → no effect, no state change
     }
 
-    // MARK: E6/P8 — load-more in flight → reachedBottom is a no-op
+    // MARK: E6/P8 — load-more in flight → rowAppeared is a no-op
 
     @Test
-    func reachedBottomNoOpWhileLoadingNextPage() async {
+    func prefetchNoOpWhileLoadingNextPage() async {
         let store = TestStore(
             initialState: SearchResultFeature.State(
                 query: "swift",
@@ -228,7 +228,58 @@ struct SearchResultFeatureTests {
             SearchResultFeature()
         }
 
-        await store.send(.reachedBottom)   // guarded by isLoadingNextPage
+        await store.send(.rowAppeared(item(1)))   // guarded by isLoadingNextPage
+    }
+
+    // MARK: R8/P10 — prefetch only triggers at/after the 70% index
+
+    @Test
+    func prefetchDoesNotTriggerBelow70Percent() async {
+        let store = TestStore(
+            initialState: SearchResultFeature.State(
+                query: "swift",
+                items: IdentifiedArray(uniqueElements: (1...30).map(item)),
+                totalCount: 100,
+                currentPage: 1,
+                hasNextPage: true,
+                phase: .loaded
+            )
+        ) {
+            SearchResultFeature()
+        }
+
+        // index 9 < 70% of 30 (=21) → no prefetch.
+        await store.send(.rowAppeared(item(10)))
+    }
+
+    @Test
+    func prefetchTriggersAtThresholdIndex() async {
+        let data2 = searchJSON(totalCount: 100, ids: Array(31...60))
+        let store = TestStore(
+            initialState: SearchResultFeature.State(
+                query: "swift",
+                items: IdentifiedArray(uniqueElements: (1...30).map(item)),
+                totalCount: 100,
+                currentPage: 1,
+                hasNextPage: true,
+                phase: .loaded
+            )
+        ) {
+            SearchResultFeature()
+        } withDependencies: {
+            $0.httpClient.data = { @Sendable _ in self.ok(data2) }
+        }
+
+        // index 21 == floor(30 * 0.7) → prefetch.
+        await store.send(.rowAppeared(item(22))) {
+            $0.isLoadingNextPage = true
+        }
+        await store.receive(.nextPageResponse(.success(page(Array(31...60), totalCount: 100)))) {
+            $0.isLoadingNextPage = false
+            $0.currentPage = 2
+            $0.items.append(contentsOf: (31...60).map(self.item))
+            $0.hasNextPage = true
+        }
     }
 
     // MARK: E7/P9 — new search while loading cancels in flight + resets
