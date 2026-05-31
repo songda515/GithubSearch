@@ -226,3 +226,13 @@ implement-spec 스킬 사용에 대해 CLAUDE.md 추가
 - 최근 검색어 추가시 맨 앞 삽입
 - 중복 검색어 추가시 기존 제거 후 맨 앞 삽입
 - 10개 초과시 가장 오래된 검색어 제거
+
+
+---
+
+Continue Task 5: read swift test result; if green commit code, then xcodebuild + XcodeBuildMCP scenario screenshots, PR, merge.
+
+
+---
+
+PR #8 에서 진행하지 못한 XcodeBuildMCP  tap UI-automation 활성화해주고, 재 검증해서 댓글에 추가해줘.
