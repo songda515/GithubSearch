@@ -120,24 +120,29 @@ GithubSearchPackage/Tests/
 
 ## 7. 다음 스텝 — Task 분해
 
-이 overview 를 기준으로 화면별 상세 spec 과 Core 구현을 아래 단위로 분해한다. 각 항목은 별도 이슈/PR 로
-진행하며, **동작 정의 항목은 `spec.md` 작성이 코드보다 앞선다**(spec-first).
+이 overview 를 기준으로 구현 작업을 아래 6개 Task 로 분해한다. **각 Task = 1 이슈 = 1 브랜치 = 1 PR**
+(CLAUDE.md 워크플로우). **세부 요구사항·정책·구현은 각 Task 에 진입할 때 정의**하며, 그 시점에 해당 화면의
+`spec.md`(필요 시 본 overview)의 수정 영역을 **그 Task 자신의 PR 에 함께 포함**한다.
+spec-first 원칙에 따라 동작 정의 항목은 각 Task 체크리스트 첫 항목이 "`spec.md` 갱신"이며, 코드보다 앞선다.
 
-| # | Task | 산출물 | 의존 |
-|---|------|--------|------|
-| T1 | 검색 화면 spec | `docs/specs/search/spec.md` (SearchFeature: title·searchable·자식 합성·webview destination) | overview |
-| T2 | 최근검색어 spec | `docs/specs/search-recent/spec.md` (SearchRecentFeature + UserDefaultsClient 사용 정책) | T1 |
-| T3 | 검색결과 spec | `docs/specs/search-result/spec.md` (SearchResultFeature + 검색 API 명세) | T1 |
-| T4 | 웹뷰 spec | `docs/specs/webview/spec.md` (WebViewFeature: title·url) | T1 |
-| T5 | Core: UserDefaultsClient | 구현 + 테스트 | T2 |
-| T6 | Core: HTTPClient | 구현 + 테스트 (concurrency·Decodable) | T3 |
-| T7 | Feature 구현 | 각 spec 의 수용 기준을 TestStore 로 충족 | T1–T6 |
+**필수(essential) → 추가(additional) 순서**로 MVP 를 먼저 세우고 보강한다. 참고 화면의
+`*_requirement.PNG` 는 필수 범위, `*_improvement.PNG` 는 추가 범위에 대응한다.
 
-> 각 화면별 spec 디렉터리는 본 단계에서 **골격만 스캐폴딩**(섹션1 식별/Overview 만 채우고 나머지 `TBD`)했다.
-> 상세 정책은 위 Task 에서 `_template/spec.md` 의 모든 섹션을 채워 완성한다.
+| Task | 범위 (scope, roadmap altitude) | 주요 touchpoint | 참고 화면 | 의존 |
+|------|--------------------------------|-----------------|-----------|------|
+| **Task 4. 검색 화면 구조** | `SearchFeature` 셸: navigation title, searchable `query` 바인딩, 자식(`SearchRecentFeature`/`SearchResultFeature`) Scope 합성, `WebViewFeature` destination 연결, `query` 상태에 따른 본문 전환 골격 | `search/spec.md`, `webview/spec.md`(destination) | — | overview |
+| **Task 5. 검색 입력 필수** | `SearchRecentFeature` 필수: 최근검색어 표시·선택→검색 전환 위임, 저장/조회. `UserDefaultsClient`(get/set) Core 구축 + 테스트 | `search-recent/spec.md`, `Core/UserDefaultsClient` | `search_input_requirement` | Task 4 |
+| **Task 6. 검색 결과 필수** | `SearchResultFeature` 필수: 전달받은 `query` 로 결과 목록 표시, 항목 선택→웹뷰 위임. `HTTPClient`(concurrency·Decodable) Core 구축 + GitHub 검색 API | `search-result/spec.md`, `webview/spec.md`, `Core/HTTPClient` | `search_result_requirement` | Task 4 |
+| **Task 7. 검색 입력 추가** | 최근검색어 보강: 개별/전체 삭제, 입력 중 추천 등 | `search-recent/spec.md` | `search_input_improvement` | Task 5 |
+| **Task 8. 검색 결과 추가** | 결과 보강: 결과 수 표시, 페이지네이션, 빈/에러 상태 등 | `search-result/spec.md` | `search_result_improvement` | Task 6 |
+| **Task 9. E2E full test** | 전체 플로우 통합/E2E(입력→최근→결과→웹뷰) + 빌드/테스트 게이트 전체 | 각 FeatureTests, app test target | — | Task 4–8 |
+
+> 위 표는 **경계/순서를 잡는 roadmap altitude** 다. 각 Task 의 상세 요구사항·엣지케이스·API 명세·정책은
+> 진입 시 해당 `spec.md` 를 채우며 확정한다(현재 `search` 는 Task 4 범위가 작성됨, 나머지는 골격).
 
 ## 8. 변경 이력 (Changelog)
 
 | 날짜 | 이슈/PR | 변경 내용 |
 |------|---------|-----------|
 | 2026-05-31 | #5 | 최초 작성 — 전체 구조 overview + 화면별 spec 골격 분해 |
+| 2026-05-31 | #7 | §7 Task 분해를 구현 단위(Task 4–9)로 갱신 (Task 4 PR 에 포함) |
