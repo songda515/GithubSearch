@@ -98,6 +98,11 @@ Per-screen behavior is defined by **specs, not code**. The spec is the contract;
    work with the project skill `.claude/skills/implement-spec` (invoke `/implement-spec`). It enforces this
    exact order: spec 구체화 → §7 TCA 매핑 → §8 수용 기준을 `TestStore` 로(TDD RED→GREEN) → 검증 게이트.
    "코드부터 짜고 spec 을 맞추는" 흐름은 금지.
+7. **Use the `review-spec` skill to judge — separately from implementing.** 구현(`implement-spec`)과
+   **분리된 독립 검증 레인**. 테스트가 GREEN 이 된 뒤 PR 직전에 `.claude/skills/review-spec` (invoke
+   `/review-spec`) 으로 spec↔구현 일치를 판정한다. 셀프 승인 금지 — review-spec 은 **새 서브에이전트**에서
+   돌아 검증 과정이 메인 컨텍스트를 오염시키지 않고 **판정만** 반환한다. 점검: ① 요구사항(§2) 구현 ②
+   수용 기준(§8)↔테스트 ③ UI 렌더링↔참고 화면. **FAIL 이면 PR 금지** — 고치고 재검증.
 
 ---
 
@@ -158,7 +163,7 @@ All work is **issue-driven**. The flow is: open an issue → branch → commit p
    - **체크리스트 (Checklist)** — `- [ ]` sub-tasks that map to commits and acceptance criteria
 2. **One issue = one branch = one PR.** Branch off the default branch, named `<issue#>-<short-slug>` (e.g. `2-github-search-feature`). Every issue gets its own PR; never mix two issues in one branch/PR.
 3. **Commit per sub-task.** Each checklist sub-task in the issue is its own commit. Keep commits atomic and scoped to one sub-task. Reference the issue in commit messages (e.g. `... (#2)`).
-4. **Test + build must pass BEFORE opening a PR.** Run the full [Verification gates](#verification-gates--run-before-any-completion-report) (`swift test` + `xcodebuild build` + `xcodebuild test`). **If build or tests fail, do NOT commit** — fix first. A PR is only opened from a green state.
+4. **Gate before a PR: `test → review-spec → 판정 → PR`.** First run the full [Verification gates](#verification-gates--run-before-any-completion-report) (`swift test` + `xcodebuild build` + `xcodebuild test`); **if build or tests fail, do NOT commit** — fix first. Then, for spec-backed work, run **`review-spec`** (독립 서브에이전트 판정; SDD §7) and act on the 판정: **PASS → open the PR; FAIL → 고치고 test 부터 다시.** A PR is only opened from a GREEN + PASS state.
 5. **PR body must describe** (in this order):
    - **Summary** — what changed and why, at a glance
    - **요구사항 (Requirements)** — the issue's requirements this PR fulfills (link the issue: `Closes #<n>`)
@@ -184,5 +189,5 @@ GH_TOKEN="$TOK" gh pr merge --merge              # merge commit, not squash/reba
 ## Notes
 
 - `.gitignore` is configured for Xcode + SwiftPM (`.build/`, `.swiftpm/`, `xcuserdata/`, `DerivedData/`). `Package.resolved` is committed for reproducible dependency resolution.
-- Skills: `.claude/skills/implement-spec` is configured (SDD-driven implementation; see SDD §6). `.claude/rules` is not yet configured.
+- Skills: `.claude/skills/implement-spec` (구현; SDD §6) and `.claude/skills/review-spec` (판정; SDD §7) are configured. `.claude/rules` is not yet configured.
 - MCP: `.mcp.json` registers `XcodeBuildMCP` for UI/screen verification (see "Screen verification" above). 활성화는 Claude Code 재시작 시 반영.
