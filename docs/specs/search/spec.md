@@ -33,12 +33,14 @@
 
 | 상태 | 조건 | 화면 표시 |
 |------|------|-----------|
-| 진입 / Idle | `query` 비어 있음, search 비활성 | large title `"Search"`, placeholder `"저장소 검색"`, 하단 빈 영역 |
+| 진입 / Idle | `query` 비어 있음, 미제출 | large title `"Search"`, placeholder `"저장소 검색"`, 본문 = 최근 검색어(`SearchRecentView`) |
 | 입력 중 / Active | search bar 포커스·입력 | title **collapse**, 입력 `query` 표시, **cancel** 버튼 노출 |
-| 확정 / Submitted | 검색 제출됨 | `query` 유지, cancel 가능, 하단 빈 영역(결과는 Task 6) |
+| 확정 / Submitted | 검색 제출됨 | `query` 유지, cancel 가능, 본문 = 검색 결과(`SearchResultView`) |
 
-> **title collapse** 와 **cancel 버튼**은 SwiftUI `.searchable` 의 기본 동작(뷰 레이어)이다. 리듀서는
-> `query` 와 제출만 소유하며, 이 두 표시는 `TestStore` 가 아니라 **화면 스크린샷**으로 검증한다.
+> **본문 전환(3분기)**: `query` 빈+미제출 → 최근 검색어, 입력 중(query 있음+미제출) → 자동완성, 제출(엔터/선택)
+> → 검색 결과. 입력 vs 결과 구분은 파생 **`isShowingResults = (result.phase != .idle)`** 로 판단한다(별도 mode 없음).
+> 최근/자동완성 내부 분기는 자식 `SearchRecentFeature`(`isFiltering`)가 담당한다(search-recent §3).
+> **title collapse** 와 **cancel 버튼**은 SwiftUI `.searchable` 기본 동작(뷰 레이어)이며 화면 스크린샷으로 검증한다.
 
 ## 4. 엣지 케이스 (Edge cases)
 
@@ -55,17 +57,23 @@
 ## 6. 정책 (Policy)
 - **P1. (trim)** `query` 유효성은 앞뒤 공백·개행 제거(`whitespacesAndNewlines`) 후 판단한다. trim 후 빈 문자열은 검색어 없음과 동일하게 취급한다.
 - **P2. (query 유지)** 검색 확정 시 사용자가 입력한 `query` 문자열은 **그대로 유지**한다(표시용 변형 없음). 검색에 쓰는 유효 검색어는 파생 프로퍼티 `sanitizedQuery` 로만 노출한다.
-- **P3. (구조 한정)** 본 화면은 검색 결과 호출·네비게이션을 하지 않는다(Task 6). 제출 액션은 상태 정규화 외 부수효과가 없다.
+- **P3. (제출=결과 진입)** 검색 확정/최근·자동완성 선택 시 결과 로드보다 먼저 최근 검색어 저장(search-recent P7) 후 결과를 요청한다(Task 6).
+- **P4. (입력 중=결과 리셋)** 검색어 타이핑(`binding`)은 "입력 중"으로 간주해 **결과를 idle 로 리셋**하고 자식에 `query` 를 전달한다 → 입력 영역(최근/자동완성) 노출. 결과 진입은 엔터/선택에서만 일어난다.
 
 ## 7. TCA 매핑 (State / Action / Client)
 - **State**:
-  - `query: String` — 검색 입력(`.searchable` 바인딩). 기본 `""`.
-  - `var sanitizedQuery: String` — 파생: `query` 의 앞뒤 공백 제거값 (P1).
+  - `query: String` — 검색 입력(`.searchable` 바인딩). 기본 `""`. (parent 가 SoT, 자식에 전달)
+  - `recent: SearchRecentFeature.State` / `result: SearchResultFeature.State` — 자식.
+  - `@Presents var destination: WebViewFeature.State?` — 웹뷰 push.
+  - `var sanitizedQuery: String` — 파생: `query` trim.
   - `var hasActiveSearch: Bool` — 파생: `!sanitizedQuery.isEmpty`.
+  - `var isShowingResults: Bool` — 파생: `result.phase != .idle` (본문 전환의 입력 vs 결과 판단).
 - **Action**:
-  - `binding(BindingAction<State>)` — `query` 업데이트 및 cancel(빈 문자열 set).
-  - `searchSubmitted` — 검색 확정(`.onSubmit(of: .search)`).
-- **Client**: 없음.
+  - `binding(BindingAction<State>)` — `query` 업데이트/cancel. → `.concatenate(.result(.searchCleared), .recent(.queryChanged(query)))` (P4: 결과 리셋 + 자식에 query 전달).
+  - `searchSubmitted` — 검색 확정(`.onSubmit(of: .search)`) → 저장 후 `result(.searchRequested)` (P3).
+  - `recent(.delegate(.selected))` — 최근/자동완성 선택 → query 반영 + 저장 후 `result(.searchRequested)`.
+  - `result` / `destination` — 자식·웹뷰.
+- **Client**: 없음(자식이 보유).
 
 ## 8. 수용 기준 (Acceptance criteria)
 - [ ] **R4** → 테스트: `binding`으로 `query` 업데이트 시 `state.query` 가 갱신된다.
@@ -74,9 +82,12 @@
 - [ ] **E2** → 테스트: `query = "  swift  "` 이면 `sanitizedQuery == "swift"` 이고 `hasActiveSearch == true`.
 - [ ] **E4** → 테스트: cancel(=`query` 를 `""` 로 set) 후 `hasActiveSearch == false` (Idle).
 - [ ] **R2 / R3 / 입력 중 collapse** → 화면 스크린샷(XcodeBuildMCP)으로 검증(뷰 레이어).
+- [ ] **P4** → 테스트: `binding`(타이핑) 시 `.result(.searchCleared)` 와 `.recent(.queryChanged(query))` 가 전파된다.
+- [ ] **P4 / isShowingResults** → 테스트: `result.phase == .loaded` 에서 `binding`(타이핑) → 결과 idle 리셋으로 `isShowingResults == false`.
 
 ## 9. 변경 이력 (Changelog)
 | 날짜 | 이슈/PR | 변경 내용 |
 |------|---------|-----------|
 | 2026-05-31 | #5 | 골격 스캐폴딩 (섹션1만 작성) |
 | 2026-05-31 | #7 | Task 4 구조 구현용 구체화 (요구사항·UI 상태·엣지케이스·정책·TCA 매핑·수용 기준) |
+| 2026-06-01 | #23 | Task 7: 본문 3분기(최근/자동완성/결과) + `isShowingResults` 파생, `binding`→결과 리셋+자식 query 전달(P4), P3 를 Task 6 반영(제출=결과 진입)으로 갱신 |
