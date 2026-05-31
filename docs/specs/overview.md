@@ -43,7 +43,7 @@ GithubSearch 는 GitHub 저장소를 검색하고 결과를 웹뷰로 열어보�
 > 검색결과(`SearchResultFeature`) 사이에서 전환된다. 전환의 **구체 조건**은 화면별 spec 소관.
 
 **참고 화면(스크린샷):**
-- 검색 입력/최근검색어 — [`search-recent/search_input_requirement.PNG`](search-recent/search_input_requirement.PNG), [`../search_input_improvement.PNG`](../search_input_improvement.PNG)
+- 검색 입력/최근검색어 — [`search-recent/search_input_requirement.PNG`](search-recent/search_input_requirement.PNG), [`search-recent/search_input_improvement.PNG`](search-recent/search_input_improvement.PNG)
 - 검색 결과 — [`../search_result_requirement.PNG`](../search_result_requirement.PNG), [`../search_result_improvement.PNG`](../search_result_improvement.PNG)
 
 ## 3. Feature Reducer 트리 (Composition)
@@ -133,7 +133,7 @@ spec-first 원칙에 따라 동작 정의 항목은 각 Task 체크리스트 첫
 | **Task 4. 검색 화면 구조** | `SearchFeature` 셸: navigation title, searchable `query` 바인딩, 자식(`SearchRecentFeature`/`SearchResultFeature`) Scope 합성, `WebViewFeature` destination 연결, `query` 상태에 따른 본문 전환 골격 | `search/spec.md`, `webview/spec.md`(destination) | — | overview |
 | **Task 5. 검색 입력 필수** | `SearchRecentFeature` 필수: 최근검색어 표시·선택→검색 전환 위임, 저장/조회. `UserDefaultsClient`(get/set) Core 구축 + 테스트 | `search-recent/spec.md`, `Core/UserDefaultsClient` | `search_input_requirement` | Task 4 |
 | **Task 6. 검색 결과 필수** | `SearchResultFeature` 필수: 전달받은 `query` 로 결과 목록·`{개수}개 저장소` 헤더·빈/에러 화면, 항목 선택→웹뷰 위임, **기본 load-more**(마지막 행 도달 시 다음 페이지). `HTTPClient`(concurrency·Decodable) Core 구축 + GitHub 검색 API, 아바타 이미지 캐싱(Kingfisher) | `search-result/spec.md`, `webview/spec.md`, `Core/HTTPClient` | `search_result_requirement` | Task 4 |
-| **Task 7. 검색 입력 추가** | 최근검색어 보강: 개별/전체 삭제, 입력 중 추천 등 | `search-recent/spec.md` | `search_input_improvement` | Task 5 |
+| **Task 7. 검색 입력 추가** | 최근검색어 보강: **입력 중 자동완성**(최근검색어 대소문자 무시 contains 매칭), 자동완성 row(검색어 하이라이트 + 날짜 `MM.dd`), 자동완성 UI ≠ 최근검색어 UI(동일 모델), 저장/로드 대소문자 무시 dedup | `search-recent/spec.md` | `search_input_improvement` | Task 5 |
 | **Task 8. 검색 결과 추가** | 결과 보강: 다음 페이지 **prefetch(미리 호출)**·페이지 로딩 스피너, 정렬/필터 등 | `search-result/spec.md` | `search_result_improvement` | Task 6 |
 | **Task 9. E2E full test** | 전체 플로우 통합/E2E(입력→최근→결과→웹뷰) + 빌드/테스트 게이트 전체 | 각 FeatureTests, app test target | — | Task 4–8 |
 
@@ -147,3 +147,4 @@ spec-first 원칙에 따라 동작 정의 항목은 각 Task 체크리스트 첫
 | 2026-05-31 | #5 | 최초 작성 — 전체 구조 overview + 화면별 spec 골격 분해 |
 | 2026-05-31 | #7 | §7 Task 분해를 구현 단위(Task 4–9)로 갱신 (Task 4 PR 에 포함) |
 | 2026-06-01 | #19 | §7 Task 6 범위에 `{개수}` 헤더·빈/에러·기본 load-more·Kingfisher 포함, Task 8 은 prefetch·로딩 스피너·정렬 보강으로 재배분 (Task 6 PR 에 포함) |
+| 2026-06-01 | #23 | §2 search_input_improvement 이미지 경로를 `search-recent/` 하위로 갱신, §7 Task 7 범위 구체화(자동완성·하이라이트·MM.dd·대소문자 dedup) (Task 7 PR 에 포함) |
