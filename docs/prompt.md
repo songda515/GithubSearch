@@ -261,3 +261,49 @@ CLAUDE.md 에 중복 항목 개선해줘.
 - 기존 스킬에서 사용하던 플로우에서 skill 참조하도록 수정
 
 3. Tech stack, 프로젝트 구조, 코드 작성 규칙, 검증, Git 등 항목은 유지
+
+
+---
+
+Task 6. 검색 결과 화면 구현 진행할게
+
+## 선행 작업
+- docs/search_result_requirement.png 파일을 spec 폴더 하위로 이동
+- [GET] https://api.github.com/search/repositories?q={keyword}&page={page} API 에 대한 스펙 리서치
+- pagenation 기반으로 이미지가 많이 로드될 예정으로 이미지 캐싱을 위한 kingfisher 라이브러리 연동
+
+## 요구사항
+- 검색 입력 화면에서 최근 검색어 입력, 검색어 입력 후 연결되는 화면
+- 현재 화면에서 search bar 에서 취소를 누를 경우 검색 입력 화면으로 돌아가야한다
+- row 를 클릭할 경우 webview 로 url 이동이 되어야한다.
+- next page 미리 호출, next page 로딩시 로딩 상태 등 고도화는 improvement 에서 진행
+
+## UI
+1. search title, search bar 동일하게 사용
+2. 섹션 타이틀: {저장소 개수}개 저장소
+3. 각 행의 UI:
+{image} {title - bold, black}
+{image} {description - normal, gray}
+  - image 는 circle 형태로 제공
+  - title, description 은 말줄임을 적용한다.
+3. 검색 결과 없음, 네트워크 에러 노출을 위한 화면 필요
+
+## Data model
+1. Repository Item: id, thumbnail, title, description, landingUrl
+2. API 와 맵핑되는 데이터
+  - thumbnail: owner.avater_url
+  - title: name
+  - description: owner.login
+3. id 기반으로 중복 제거, IdentifiedArrayOf 의 식별자로 사용
+
+## Core - HTTP Client
+- 범용적으로 사용할 수 있는 HTTP Client 를 생성
+- 일반적인 Network error (invalideURL, invalideReesponse, httpStatus, transport, decoding) 를 함께 고려
+- network endpoint, http method, parameter 를 전달받을 수 있는 구조
+- concurrency 기반으로 구현하고 return type 은 decodable 타입을 준수하도록하는 메소드 제공
+- Core 모듈 내에서 독립적인 테스트 구현
+
+## 엣지케이스
+- 결과 0건, next page 없음, 네트워크 에러, 아바타 이미지 로드 실패,  row 데이터 일부 누락
+- next page 호출이 중복으로 일어나지 않ㄷ도록 이미 로딩 중인 상태에서는 추가 요청되지 않도록 플래그
+- 로딩 중 검색어 변경시 기존 api 호출에 대한 취소 처리, 기존 결과 리셋 필요
