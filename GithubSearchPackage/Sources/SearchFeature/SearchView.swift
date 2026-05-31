@@ -14,9 +14,10 @@ public struct SearchView: View {
     public var body: some View {
         NavigationStack {
             Group {
-                if store.hasActiveSearch {
+                if store.isShowingResults {
                     SearchResultView(store: store.scope(state: \.result, action: \.result))
                 } else {
+                    // 입력 영역: 자식이 최근 검색어 / 자동완성(isFiltering)을 내부 분기.
                     SearchRecentView(store: store.scope(state: \.recent, action: \.recent))
                 }
             }
