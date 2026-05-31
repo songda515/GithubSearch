@@ -36,8 +36,8 @@ Agent(subagent_type: "oh-my-claudecode:code-reviewer",   // 또는 "verifier" �
 
 1. **요구사항 재점검** — `docs/specs/<feature>/spec.md` §2 의 각 요구사항이 코드에 실제 구현됐는지 대조.
 2. **테스트 기준 재점검** — §8 수용 기준 ↔ 테스트 1:1. 테스트가 존재·통과하고 **그 기준을 실제로 단언**하는지(공허한 통과 아님). `swift test` 재실행.
-3. **UI 렌더링 일치** — XcodeBuildMCP 로 빌드·실행 후 spec 의 각 UI 상태/엣지케이스를 만들어 `screenshot`,
-   **참고 화면(`docs/specs/<feature>/*.PNG`)** 및 spec 표시 규칙과 일치하는지 확인. (탭 필요 시 `tap`/`snapshot_ui`)
+3. **UI 렌더링 일치** — `verify-screen` 스킬로 spec 의 각 UI 상태/엣지케이스를 시뮬레이터에서 캡처해
+   **참고 화면(`docs/specs/<feature>/*.PNG`)** 및 spec 표시 규칙과 일치하는지 확인.
 
 ## 판정 (Verdict) — 반환 형식
 
