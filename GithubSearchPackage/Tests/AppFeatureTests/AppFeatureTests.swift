@@ -16,5 +16,10 @@ struct AppFeatureTests {
         await store.send(.search(.binding(.set(\.query, "swift")))) {
             $0.search.query = "swift"
         }
+        // 타이핑은 결과 리셋(이미 idle → 무변) + 자식에 query 전달(Task 7, search P4).
+        await store.receive(\.search.result.searchCleared)
+        await store.receive(\.search.recent.queryChanged) {
+            $0.search.recent.query = "swift"
+        }
     }
 }

@@ -37,6 +37,10 @@ public struct SearchFeature {
 
         /// trim 후 검색어가 존재하는가.
         public var hasActiveSearch: Bool { !sanitizedQuery.isEmpty }
+
+        /// 본문이 검색 결과를 보여주는가. 결과가 idle 이 아니면(검색 요청됨) 결과, 아니면 입력 영역
+        /// (최근/자동완성). 타이핑(`binding`)은 결과를 idle 로 되돌린다 (search §3, P4).
+        public var isShowingResults: Bool { result.phase != .idle }
     }
 
     public enum Action: BindableAction, Equatable {
@@ -62,11 +66,12 @@ public struct SearchFeature {
         Reduce { state, action in
             switch action {
             case .binding:
-                // 취소/클리어로 검색어가 비면 결과를 리셋한다(R5/E7).
-                if state.sanitizedQuery.isEmpty {
-                    return .send(.result(.searchCleared))
-                }
-                return .none
+                // 타이핑(입력 중)은 결과를 idle 로 되돌리고 자식에 query 를 전달한다 → 입력 영역(최근/자동완성).
+                // 빈 query 면 최근, 비어있지 않으면 자동완성. 결과 진입은 엔터/선택에서만 (P4, R5/E7).
+                return .concatenate(
+                    .send(.result(.searchCleared)),
+                    .send(.recent(.queryChanged(state.query)))
+                )
 
             case .searchSubmitted:
                 // 결과 로드보다 먼저 최근 검색어 저장(P7), 그 다음 결과 요청.
