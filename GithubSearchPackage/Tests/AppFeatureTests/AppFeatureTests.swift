@@ -16,5 +16,9 @@ struct AppFeatureTests {
         await store.send(.search(.binding(.set(\.query, "swift")))) {
             $0.search.query = "swift"
         }
+        // idle 에서 타이핑은 자식에 query 만 전달(Task 7, search P4).
+        await store.receive(\.search.recent.queryChanged) {
+            $0.search.recent.query = "swift"
+        }
     }
 }

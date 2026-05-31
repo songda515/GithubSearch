@@ -320,3 +320,45 @@ SearchFeature 소스 구조 정리
 - SearchRecent/: Feature, Item, View 
 - SearchResult/: Feeature, View, tem, API
 - WebView/: Feature, View
+
+
+---
+
+Task 7: 검색 입력 화면 고도화 작업 진행
+
+# 선행 작업
+docs/search_input_improvement.png 를 spec 하위로 이동
+
+# 요구사항
+1. "검색어 입력 중" 상태
+- query 비어있음: 전체 최근 검색어 리스트
+- query 입력중: 최근 검색어에서 자동완성이 일치되는 검색어를 보여준다.
+- query 입력완료: 검색결과
+2. 자동완성 노출 UI
+- {검색어} {spacer} {검색 날짜}
+- 검색어: 하이라이트 처리, 자동완성 일치한 텍스트는 볼드처리, 그외 텍스트는 노멀 폰트
+- 검색 날짜는 MM.dd 포맷으로 진행, Sendable 값 타입인 Date.FormatStyle 활용
+3. 자동완성 노출 UI 와 최근 검색어 노출 UI 는 다르게 구현이 필요하다. 
+- SearchRecentItem 데이터타입은  동일하게 사용한다
+4. 자동완성 클릭시에 동일하게 검색 결과 화면으로 이동되게 한다.
+5. 자동완성을 선택하지 않고 검색어에서 엔터 누른경우 검색결과 화면 랜딩 유지
+
+# 데이터모델 정확성 개선
+- 매칭 규칙: contains 기반, 대소문자 다르더라도 매칭, 한글 초성 검색은 지원하지 않음
+- 대소문자 다르더라도 매칭되도록 하기 위해 기존 데이터 저장 중복 케이스도 동일 규칙 지원
+
+# 책임분리
+- query 는 SearchFeature (parent) 에서 관리하되
+- suggeestions 은 SearchRecentFeature (child) 에서 관리
+
+# 엣지케이스
+- 입력 중 일치 항목 없음: 검색어 없음 화면 유지
+- 대소문자 차이: 제안에서 매칭되도록
+- 공백만 입력하거나 trim 처리 반영
+
+
+---
+
+정책이 잘못 정의된게 있어서 정정해줘.
+1. 검색어 입력시 키보드에서 search (enter) 입력시 바로 검색 결과로 랜딩되어야해
+2. 날짜 표기는 06.01 이 아니라 06.01. 으로 맞추고싶어.
