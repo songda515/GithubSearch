@@ -246,3 +246,18 @@ PR #8 에서 진행하지 못한 XcodeBuildMCP  tap UI-automation 활성화해�
 - 동작: 컨텍스트가 포함되지 않도록 서브에이전트 기반으로 동작
 - 점검: 스펙의 요구사항, 테스트 기준 재 점검, UI 렌더링과 참고화면 일치
 - CLAUDE.md 플로우에 test -> review-spec -> 판정 -> PR 명시
+
+
+---
+
+CLAUDE.md 에 중복 항목 개선해줘. 
+1. skill - single source 원칙에서 정리가 필요
+- implement-spec, review-spec 등 스킬에 대한 상세한 내용은 스킬에서 확인가능하므로 간단하게 요약
+- 추후 두개의 문서가 달라질 수 있음을 사전에 방지 목적
+
+2. xcode build mcp  
+- 설정에 대한 SSoT 는 .mcp.json 을 가리키도록 개선,  npx 커맨드 등 제거
+- 화면검증 절차는 skill create 해서 CLAUDE.md 에는 스킬을 명시
+- 기존 스킬에서 사용하던 플로우에서 skill 참조하도록 수정
+
+3. Tech stack, 프로젝트 구조, 코드 작성 규칙, 검증, Git 등 항목은 유지
