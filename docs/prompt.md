@@ -129,3 +129,39 @@ SDD 기반으로 개별 화면의 스펙을 정의하기 전에 전체 구조를
 
 ## 참고 화면
 docs/{}.PNG 이미지
+
+
+---
+
+Task 4: 검색 화면 구조 구현 진행해줘.
+- spec 기반으로 개발이 진행될 수 있도록 implement-spec 스킬 생성
+- 아래 스펙에 대해 구체적 문서 갱신
+
+## 화면 요구사항
+- title, searchbar, 하단 컨텐츠 영역(현재는 빈 영역)
+
+## UI 상태
+1. title
+- 진입시: large title "Search"
+- 서치바 입력 중: title collapse
+
+2. 서치바
+- 입력 전: placeholder "저장소 검색"
+- 입력 중: query 업데이트, cancel 가능
+- 입력 완료: 검색 확정, query 유지, cancel 가능
+
+## 엣지케이스
+- 검색어 trim 처리, trim 후 빈값인 경우 검색어 없는것과 동일하게 처리
+
+## API
+- 구조이기 때문에 API 명세 없음
+
+## 검증
+- 기존 test build 는 test store 기반으로 진행
+- implement-spec 스킬이 동작되어서 구현되었는지 확인
+- 최종 검증은 XcodeBuildMCP 을 도입해서 구현 화면 검증
+
+
+---
+
+이어서 진행해줘.

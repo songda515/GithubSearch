@@ -1,27 +1,28 @@
 import ComposableArchitecture
+import SearchFeature
 
-/// Root feature. Every screen in the app is a `@Reducer` paired with a SwiftUI
-/// `View`. This is intentionally minimal — it only proves the TCA wiring builds.
-/// Add child features via `Scope` / `ifLet` / `forEach` as the app grows.
+/// App composition root. Hosts each screen's feature via `Scope`. Currently the
+/// app is the search screen; add siblings here as the app grows.
 @Reducer
 public struct AppFeature {
     @ObservableState
     public struct State: Equatable {
-        public init() {}
+        public var search: SearchFeature.State
+
+        public init(search: SearchFeature.State = .init()) {
+            self.search = search
+        }
     }
 
     public enum Action {
-        case onAppear
+        case search(SearchFeature.Action)
     }
 
     public init() {}
 
     public var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            switch action {
-            case .onAppear:
-                return .none
-            }
+        Scope(state: \.search, action: \.search) {
+            SearchFeature()
         }
     }
 }

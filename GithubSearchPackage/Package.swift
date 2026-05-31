@@ -15,6 +15,7 @@ let package = Package(
     ],
     products: [
         .library(name: "AppFeature", targets: ["AppFeature"]),
+        .library(name: "SearchFeature", targets: ["SearchFeature"]),
     ],
     dependencies: [
         // TCA pinned to an exact stable version for reproducible builds.
@@ -27,15 +28,28 @@ let package = Package(
         ),
     ],
     targets: [
+        // App composition root. Hosts feature modules via Scope.
         .target(
             name: "AppFeature",
             dependencies: [
+                "SearchFeature",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             ]
         ),
         .testTarget(
             name: "AppFeatureTests",
             dependencies: ["AppFeature"]
+        ),
+        // Search screen (Task 4: shell — title, search bar, empty content area).
+        .target(
+            name: "SearchFeature",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            ]
+        ),
+        .testTarget(
+            name: "SearchFeatureTests",
+            dependencies: ["SearchFeature"]
         ),
     ],
     // Swift 6 language mode for full data-race safety (strict concurrency).

@@ -1,8 +1,9 @@
 import ComposableArchitecture
+import SearchFeature
 import SwiftUI
 
-/// Root view. Pattern for every screen: a SwiftUI `View` driven by a
-/// `StoreOf<SomeFeature>`. State is observed automatically via `@ObservableState`.
+/// Root view. Renders the scoped search screen. The thin app shell calls
+/// `AppView.make()` without needing to import TCA.
 public struct AppView: View {
     let store: StoreOf<AppFeature>
 
@@ -11,18 +12,7 @@ public struct AppView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("GithubSearch")
-                .font(.headline)
-            Text("SwiftUI + TCA harness ready")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-        .onAppear { store.send(.onAppear) }
+        SearchView(store: store.scope(state: \.search, action: \.search))
     }
 }
 
