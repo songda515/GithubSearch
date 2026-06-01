@@ -46,7 +46,8 @@ let package = Package(
         ),
         .testTarget(
             name: "AppFeatureTests",
-            dependencies: ["AppFeature"]
+            // SearchFeature/Core for the full-flow E2E tests (drive children + stub clients).
+            dependencies: ["AppFeature", "SearchFeature", "Core"]
         ),
         // Search screen: SearchFeature (shell) + SearchRecentFeature (recent searches).
         .target(
