@@ -149,3 +149,4 @@ spec-first 원칙에 따라 동작 정의 항목은 각 Task 체크리스트 첫
 | 2026-06-01 | #19 | §7 Task 6 범위에 `{개수}` 헤더·빈/에러·기본 load-more·Kingfisher 포함, Task 8 은 prefetch·로딩 스피너·정렬 보강으로 재배분 (Task 6 PR 에 포함) |
 | 2026-06-01 | #23 | §2 search_input_improvement 이미지 경로를 `search-recent/` 하위로 갱신, §7 Task 7 범위 구체화(자동완성·하이라이트·MM.dd·대소문자 dedup) (Task 7 PR 에 포함) |
 | 2026-06-01 | #25 | §7 Task 8 범위 구체화(70% prefetch + 다음 페이지 로딩 인디케이터) (Task 8 PR 에 포함) |
+| 2026-06-01 | #27 | Task 9(E2E full test) 착수 — 교차기능 통합 spec `e2e/spec.md` 추가, 3버전(iOS 17.5/18.0/26.3) 화면검증 (Task 9 PR 에 포함) |
